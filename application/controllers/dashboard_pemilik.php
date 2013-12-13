@@ -1,7 +1,10 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Dashboard_Pemilik extends CI_Controller {
- 
+
+    var $limit = 5; // jumlah data yg muncul
+    var $pageshow = 2; // jumlah page yg muncul
+
     function __construct()
     {
         parent::__construct();
@@ -9,10 +12,12 @@ class Dashboard_Pemilik extends CI_Controller {
         /* Standard Libraries of codeigniter are required */
         $this->load->database();
         $this->load->helper('url');
-        /* ------------------ */ 
- 
+        /* ------------------ */
+
         $this->load->library('grocery_CRUD');
-		
+        $this->load->model('Tempat_model', '', TRUE);
+        $this->load->model('Kamar_model', '', TRUE);
+
     }
  
     public function index()
@@ -130,7 +135,178 @@ class Dashboard_Pemilik extends CI_Controller {
 		$this->session->sess_destroy();
 		header('location:'.base_url().'');
 	}
-}
+
+    function tempatkost(){
+        $this->load->view('dashboard_pemilik/tempatkost_view');
+    }
+    function getdata(){
+
+        $uri_segment = 3;
+        $offset = $this->uri->segment($uri_segment);
+        $page = isset($offset) ? $offset : 1;
+        $kos = $this->Tempat_model->get_all();
+        $totaldata = count($kos);
+        $pagetotal = ceil($totaldata / $this->limit);
+        $pageshow = $pagetotal > $this->pageshow ? $this->pageshow : $pagetotal;
+        $step = floor($pageshow / 2);
+        $pagestart = ($page - $step) > 1 ? $page - $step : 1;
+        $pageend = ($page + $step) < $pagetotal ? $page + $step : $pagetotal;
+        if($pageend - $pagestart + 1 < $pageshow) {
+            $pageend = $pagestart + $pageshow - 1;
+            $pageend = $pageend > $pagetotal ? $pagetotal : $pageend;
+
+            if($pageend - $pagestart + 1 < $pageshow){
+                $pagestart = $pageend - $pageshow - 1;
+                $pagestart = $pagestart > 1 ? $pagestart : 1;
+            }
+        }
+        if($pageend - $pagestart + 1 > $pageshow) {
+            if($pageend == $pagetotal){
+                $pagestart = $pageend - $pageshow + 1;
+            }
+        }
+
+        $pagination = array();
+        for($i=$pagestart; $i<=$pageend; $i++){
+            $pagination[] = $i;
+        }
+
+        $data = array_slice($kos, ($page-1) * $this->limit, $this->limit);
+        $vData = array(
+            'page' => $page,
+            'pagefirst' => 1,
+            'pagelast' => $pagetotal,
+            'pagination' => $pagination,
+            'data' => $data,
+        );
+        echo  json_encode($vData);
+    }
+
+    function getdatakamar(){
+        $uri_segment = 3;
+        $offset = $this->uri->segment($uri_segment);
+        $page = isset($offset) ? $offset : 1;
+        $kamar = $this->Kamar_model->get_byidkost($this->uri->segment(4));
+        $totaldata = count($kamar);
+        $pagetotal = ceil($totaldata / $this->limit);
+        $pageshow = $pagetotal > $this->pageshow ? $this->pageshow : $pagetotal;
+        $step = floor($pageshow / 2);
+        $pagestart = ($page - $step) > 1 ? $page - $step : 1;
+        $pageend = ($page + $step) < $pagetotal ? $page + $step : $pagetotal;
+        if($pageend - $pagestart + 1 < $pageshow) {
+            $pageend = $pagestart + $pageshow - 1;
+            $pageend = $pageend > $pagetotal ? $pagetotal : $pageend;
+
+            if($pageend - $pagestart + 1 < $pageshow){
+                $pagestart = $pageend - $pageshow - 1;
+                $pagestart = $pagestart > 1 ? $pagestart : 1;
+            }
+        }
+        if($pageend - $pagestart + 1 > $pageshow) {
+            if($pageend == $pagetotal){
+                $pagestart = $pageend - $pageshow + 1;
+            }
+        }
+
+        $pagination = array();
+        for($i=$pagestart; $i<=$pageend; $i++){
+            $pagination[] = $i;
+        }
+
+        $data = array_slice($kamar, ($page-1) * $this->limit, $this->limit);
+        $vData = array(
+            'page' => $page,
+            'pagefirst' => 1,
+            'pagelast' => $pagetotal,
+            'pagination' => $pagination,
+            'data' => $data,
+        );
+        echo  json_encode($vData);
+    }
+
+    function insertdatakos(){
+        $data = json_decode(file_get_contents("php://input"));
+        $data->email = $this->session->userdata('email');
+        echo  $this->Tempat_model->insertkos($data);
+    }
+
+    function updatekos(){
+        $data = json_decode(file_get_contents("php://input"));
+        echo  $this->Tempat_model->updatekos($data);
+    }
+
+    function deletekos(){
+        $data = json_decode(file_get_contents("php://input"));
+        echo  $this->Tempat_model->deletekos($data);
+    }
+
+    function insertdatakamar(){
+        $data = json_decode(file_get_contents("php://input"));
+        echo  $this->Kamar_model->insertkamar($data);
+    }
+
+    function updatekamar(){
+        $data = json_decode(file_get_contents("php://input"));
+        echo  $this->Kamar_model->updatekamar($data);
+    }
+    function deletekamar(){
+        $data = json_decode(file_get_contents("php://input"));
+        echo  $this->Kamar_model->deletekamar($data);
+    }
+    function do_upload()
+    {
+        $config['upload_path'] = 'uploads/';
+        $config['allowed_types'] = 'gif|jpg|png';
+        $config['max_size'] = 300;
+        $config['encrypt_name'] = true;
+
+        $this->load->library('upload', $config);
+
+        if ( ! $this->upload->do_upload())
+        {
+            $error = array('error' => $this->upload->display_errors());
+
+            $this->load->view('upload_form', $error);
+        }
+        else
+        {
+            $dataupload = array('upload_data' => $this->upload->data());
+            $data = new stdClass();
+            $data->idkost = $_POST['idkost'];
+            $data->file = 'uploads/'.$dataupload['upload_data']['file_name'];
+
+            $this->Tempat_model->updatekos($data);
+            $this->load->view('dashboard_pemilik/tempatkost_view');
+        }
+    }
+
+    function do_uploadkamar(){
+        $config['upload_path'] = 'uploads/';
+        $config['allowed_types'] = 'gif|jpg|png';
+        $config['max_size'] = 300;
+        $config['encrypt_name'] = true;
+
+        $this->load->library('upload', $config);
+
+        if ( ! $this->upload->do_upload())
+        {
+            $error = array('error' => $this->upload->display_errors());
+
+            $this->load->view('upload_form', $error);
+        }
+        else
+        {
+            $dataupload = array('upload_data' => $this->upload->data());
+            $data = new stdClass();
+            $data->idkamar = $_POST['idkamar'];
+            $data->file = 'uploads/'.$dataupload['upload_data']['file_name'];
+
+            $this->Kamar_model->updatekamar($data);
+            $this->load->view('dashboard_pemilik/tempatkost_view');
+        }
+    }
+
+    }
  
 /* End of file main.php */
 /* Location: ./application/controllers/main.php */

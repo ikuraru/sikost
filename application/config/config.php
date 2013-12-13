@@ -14,7 +14,7 @@
 | path to your installation.
 |
 */
-$config['base_url']	= 'http://bestcellphone.us';
+$config['base_url']	= '';
 $config['encryption_key'] = 'selendang';
 /*
 |--------------------------------------------------------------------------

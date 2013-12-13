@@ -10,6 +10,7 @@ class tempat_model extends CI_Model{
 	function __construct(){
         parent::__construct();
     }
+    var $tblname = 'tempat_kost';
     function renew($idkos){
 		$this->load->database();
 		//ATTRIBUT KOST YANG DIUPDATE :
@@ -34,6 +35,13 @@ class tempat_model extends CI_Model{
 		$row = $kueri->row();
 		return $row->idkost;
 	}
+
+    function get_all(){
+        $email=$this->session->userdata('email');
+        $sql = "SELECT * FROM tempat_kost WHERE email='".$email."'";
+        return $this->db->query($sql)->result_array();
+    }
+
 	function add_kost(){
 		$data=array(
 			'nama'=>$this->input->post('nama'),
@@ -106,5 +114,18 @@ class tempat_model extends CI_Model{
 		$queri = $this->db->query("SELECT * from tempat_kost WHERE email='".$email."' AND idkost=".$idkos);
 		if ($queri->num_rows()==1)return true;else return false;
 	}
-	}
+
+    function insertkos($data){
+        return $this->db->insert($this->tblname, $data);
+    }
+    function updatekos($data){
+       /* $this->db->where('email', $data->email);*/
+        $this->db->where('idkost', $data->idkost);
+        return $this->db->update($this->tblname, $data);
+    }
+
+    function deletekos($data){
+        return $this->db->delete($this->tblname, array('idkost' => $data->idkost));
+    }
+}
 ?>

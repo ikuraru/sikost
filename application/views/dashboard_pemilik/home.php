@@ -40,6 +40,7 @@
             <ul class="nav">
               <li class="active"><a href="<?php echo base_url(); ?>"><i class="icon-home icon-white"></i> Beranda</a></li>
 			  <li class="active"><a href="<?php echo base_url(); ?>"><i class="icon-book icon-white"></i> Hubungi Kami</a></li>
+			  <li class="active"><a href="<?php echo base_url(); ?>index.php/dashboard_pemilik/tempatkost"><i class="icon-book icon-white"></i> Tempat Kos</a></li>
             </ul>
            <div class="btn-group pull-right">
 			
